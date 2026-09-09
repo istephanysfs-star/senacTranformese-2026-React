@@ -3,6 +3,26 @@ import { useState } from 'react';
 function Auth() {
     const [email, setEmail] = useState('')
     const [senha, setSenha] = useState('')
+     const [mensagem, setMensagem] = useState('')
+
+    function handleLogin (){
+      const users = JSON.parse(localStorage.getItem('users'))
+       let user = users.find (u =>{
+                return u.email == email 
+            });
+            if(!user){
+                setMensagem ("usuario não encontrado")
+                return
+            }
+            
+            if(user.senha == pass){
+                
+            }else{ 
+                setMensagem ("usuario não encontrado")
+
+            }
+
+    }
     return (
         <>
             <div className="h-full flex items-center justify-center min-h-screen bg-pink-100">
@@ -39,7 +59,7 @@ function Auth() {
                         <div className="h-2"></div>
                           {senha}
 
-                        <Link id="btLogin" className="py-1 rounded-full font-medium trasition-all text-white text-center bg-pink-500 hover:bg-pink-600" >Entrar</Link>
+                        <a onClick={handlerLogin} className="py-1 rounded-full font-medium trasition-all text-white text-center bg-pink-500 hover:bg-pink-600" >Entrar</a>
                     </form>
                 </div>
             </div>
