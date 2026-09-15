@@ -1,10 +1,10 @@
-import { Link } from "react-router";
+import { Link,useNavigate } from "react-router";
 import { useState } from 'react';
 function Auth() {
     const [email, setEmail] = useState('')
     const [senha, setSenha] = useState('')
      const [mensagem, setMensagem] = useState('')
-
+    const nav = useNavigate();
     function handleLogin (){
       const users = JSON.parse(localStorage.getItem('users'))
        let user = users.find (u =>{
@@ -15,10 +15,11 @@ function Auth() {
                 return
             }
             
-            if(user.senha == pass){
-                
+            if(user.Senha == senha){
+                localStorage.setItem("logado",JSON.stringify(user));
+                nav("/painel")
             }else{ 
-                setMensagem ("usuario não encontrado")
+                setmensagem ("usuario não encontrado")
 
             }
 
@@ -59,7 +60,7 @@ function Auth() {
                         <div className="h-2"></div>
                           {senha}
 
-                        <a onClick={handlerLogin} className="py-1 rounded-full font-medium trasition-all text-white text-center bg-pink-500 hover:bg-pink-600" >Entrar</a>
+                        <a onClick={handleLogin} className="py-1 rounded-full font-medium trasition-all text-white text-center bg-pink-500 hover:bg-pink-600" >Entrar</a>
                     </form>
                 </div>
             </div>
