@@ -1,10 +1,14 @@
 import { Link } from "react-router";
 import { useState, useEffect } from 'react';
+import { supabase } from '../../utils/supabase';
+
 function Painel() {
     const [modal, setModal] = useState(false) //bollean
     const [users, setUsers] = useState([])   //vetor 
     const [user, setUser] = useState({})  //objeto
     const [logged, setLogged] = useState({})
+    const [spiner, setSpiner]= useStates (false)
+    const [msg, setMsg] = useStates('')
     useEffect(
         () => {
             const logged = JSON.parse(localStorage.getItem('logado'))
@@ -12,25 +16,31 @@ function Painel() {
         },
         []
     );
-    useEffect(()=>{
+    useEffect(() => {
         const userTemp = JSON.parse(localStorage.getItem('users'))
-        if(userTemp) setUsers(userTemp)
-    },[])
+        if (userTemp) setUsers(userTemp)
+    }, []);
 
-    function handleRegister () {
-        const newUsers = [...users, user]
-        setUsers(newUsers)
-        localStorage.setItem('users', JSON.stringify(newUsers))
-        setModal(false)
-        setUser({})
+    async function handleRegister() {
+        setSpiner (true)
+        const { data: authData, error: authError } = await supabase.auth.signUp({
+            email: user.email,
+            password: user.senha
+        });
+        if(authError){
+            setMsg(authError)
+            setSpiner (false)
+            return;
+        }
+        setSpiner(false)
     }
 
-        function updateUser(pUser){
-            setModal (true)
-            setUser(pUser)
-            
+    function updateUser(pUser) {
+        setModal(true)
+        setUser(pUser)
 
-        }
+
+    }
     return (
         <>
             <h3 className="text-pink-900 font-medium text-center p-3 ">Bem vindo {logged?.nome}</h3>
@@ -62,14 +72,14 @@ function Painel() {
                                 className="w-full px-4 rounded-full py-2 border-2 border-pink-300 rounded-x1 text-center text-pink-900 placeholder-pink-400 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 bg-pink-50" />
 
                             <label className="text-pink-900 font-medium text-center p-3 ">Email</label>
-                            <input value={user.nome}  onChange={(e) => setUser({ ...user, email: e.target.value })}
+                            <input value={user.email} onChange={(e) => setUser({ ...user, email: e.target.value })}
                                 id="iEmail"
                                 type="email"
                                 placeholder="Digite o seu melhor email"
                                 className="w-full px-4 rounded-full py-2 border-2 border-pink-300 rounded-x1 text-center text-pink-900 placeholder-pink-400 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 bg-pink-50" />
 
                             <label className="text-pink-900 font-medium text-center p-3">Senha</label>
-                            <input onChange={(e) => setUser({ ...user, Senha: e.target.value })}
+                            <input onChange={(e) => setUser({ ...user, senha: e.target.value })}
                                 id="iPass"
                                 type="password"
                                 placeholder="Letra maiúscula e números"
@@ -84,7 +94,9 @@ function Painel() {
                             <label className="p-4" ></label>
                             <a
                                 id="formRegister"
-                                onClick={handleRegister} className=" py-2 rounded-full font-medium trasition-all text-white text-center bg-pink-500 hover:bg-pink-600">Salvar</a>
+                                onClick={handleRegister} className=" py-2 rounded-full font-medium trasition-all text-white text-center bg-pink-500 hover:bg-pink-600">
+                                    {spiner? '...':'salvar'}
+                                    </a>
                         </form>
                     </div>
                 </div>)
@@ -93,21 +105,21 @@ function Painel() {
             <table className="text-pink-900 font-medium text-center p-3 bg-pink-200 rounded-full" >
                 <thead>
                     <tr>
-                    <th>Nome</th>
-                    <th>Email</th>
-                    <th>Ações</th>
+                        <th>Nome</th>
+                        <th>Email</th>
+                        <th>Ações</th>
                     </tr>
                 </thead>
                 <tbody id="listUsers" className="font-secondary">
-                    {users.map( u => (
+                    {users.map(u => (
                         <tr>
                             <td>{u.nome}</td>
                             <td>{u.email}</td>
-                            <a className= "cursor-point px-3 mx-4 hover-shadow shador-md text-white rounded-full bg-pink-500" 
-                            onClick ={()=> updateUser(u)}
+                            <a className="cursor-point px-3 mx-4 hover-shadow shador-md text-white rounded-full bg-pink-500"
+                                onClick={() => updateUser(u)}
                             >V</a>
-                            <a className= "cursor-point px-3 mx-4 hover-shadow shador-md text-white rounded-full bg-pink-900" 
-                            onClick = {()=> removerU(u)}>X</a>
+                            <a className="cursor-point px-3 mx-4 hover-shadow shador-md text-white rounded-full bg-pink-900"
+                                onClick={() => removerU(u)}>X</a>
                         </tr>
                     ))}
                 </tbody>
