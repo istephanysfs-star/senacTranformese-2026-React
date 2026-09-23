@@ -1,4 +1,3 @@
-import { Link } from "react-router";
 import { useState, useEffect } from 'react';
 import { supabase } from '../../utils/supabase';
 
@@ -7,8 +6,9 @@ function Painel() {
     const [users, setUsers] = useState([])   //vetor 
     const [user, setUser] = useState({})  //objeto
     const [logged, setLogged] = useState({})
-    const [spiner, setSpiner]= useStates (false)
-    const [msg, setMsg] = useStates('')
+    const [spiner, setSpiner]= useState (false);
+    const [msg, setMsg] = useState('');
+
     useEffect(
         () => {
             const logged = JSON.parse(localStorage.getItem('logado'))
@@ -16,6 +16,7 @@ function Painel() {
         },
         []
     );
+
     useEffect(() => {
         const userTemp = JSON.parse(localStorage.getItem('users'))
         if (userTemp) setUsers(userTemp)
@@ -28,7 +29,33 @@ function Painel() {
             password: user.senha
         });
         if(authError){
-            setMsg(authError)
+            //console.log(authError)
+            setMsg(authError.message)
+            setSpiner (false)
+            return;
+        }
+        if(!authData){
+            setMsg("não foi possivel cadastrar, verifique a internet")
+            setSpiner(false)
+            return;
+
+        }
+        
+        const { data:loginData, error: loginError} = await supabase.auth.signInWithPassword({
+            email: user.email,
+            password: user.senha
+        });
+        const {error: profileError } = await supabase
+        .from('profiles')
+        .insert({
+            user_id: loginData.user.id,
+            full_name: user.nome,
+            birth: user.nascimento,
+            cpf: user.cpf
+        });
+        if(profileError){
+            //console.log(authError)
+            setMsg(profileError.message)
             setSpiner (false)
             return;
         }
@@ -38,9 +65,8 @@ function Painel() {
     function updateUser(pUser) {
         setModal(true)
         setUser(pUser)
-
-
     }
+
     return (
         <>
             <h3 className="text-pink-900 font-medium text-center p-3 ">Bem vindo {logged?.nome}</h3>
@@ -77,13 +103,25 @@ function Painel() {
                                 type="email"
                                 placeholder="Digite o seu melhor email"
                                 className="w-full px-4 rounded-full py-2 border-2 border-pink-300 rounded-x1 text-center text-pink-900 placeholder-pink-400 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 bg-pink-50" />
-
+                            
                             <label className="text-pink-900 font-medium text-center p-3">Senha</label>
                             <input onChange={(e) => setUser({ ...user, senha: e.target.value })}
                                 id="iPass"
                                 type="password"
                                 placeholder="Letra maiúscula e números"
                                 className="w-full px-4 rounded-full py-2 border-2 border-pink-300 rounded-x1 text-center text-pink-900 placeholder-pink-400 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 bg-pink-50" />
+
+                             <label className="text-pink-900 font-medium text-center p-3">CPF</label>
+                            <input value={user.cpf} onChange={(e) => setUser({ ...user, cpf: e.target.value })}
+                                type="text"
+                                placeholder="000.000.000 - 00"
+                                className="w-full px-4 rounded-full py-2 border-2 border-pink-300 rounded-x1 text-center text-pink-900 placeholder-pink-400 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 bg-pink-50" />
+
+                               <label className="text-pink-900 font-medium text-center p-3">Nº de telefone</label>
+                            <input onChange={(e) => setUser({ ...user, telefone: e.target.value })}
+                                type="text"
+                                 placeholder= "(00)00000-0000"
+                                className="w-full px-4 rounded-full py-2 border-2 border-pink-300 rounded-x1 text-center text-pink-900 placeholder-pink-400 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 bg-pink-50" /> 
 
                             <label className="text-pink-900 font-medium text-center p-3">Data de Nascimento</label>
                             <input onChange={(e) => setUser({ ...user, Nascimento: e.target.value })}
@@ -96,7 +134,9 @@ function Painel() {
                                 id="formRegister"
                                 onClick={handleRegister} className=" py-2 rounded-full font-medium trasition-all text-white text-center bg-pink-500 hover:bg-pink-600">
                                     {spiner? '...':'salvar'}
+
                                     </a>
+                                    {msg}
                         </form>
                     </div>
                 </div>)
